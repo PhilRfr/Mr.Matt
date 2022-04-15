@@ -23,7 +23,7 @@ const correspondance = {
 var character_position = Vector2()
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var tiles = """..............................
+	var tiles = """!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 *************************%****
 *%*%*%*%*%*%*%*%*%*%*%*%*%*%*%
 %*%*%*%*%*%*%*%*%*%*%*%*%*%*%*
@@ -31,10 +31,10 @@ func _ready():
 %*%*%*%*%*%*%*%*%*%*%*%*%*%*%*
 *%*%*%*%*%*%*%*%*%*%*%*%*%*%*%
 %*%*%*%*%*%*%*%*%*%*%*%*%*%*%*
-.%............................
-..............................
-..............@..............."""
-	tiles = """..............................
+!%!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!@!!!!!!!!!!!!!!!"""
+	var tilesd = """..............................
 ......*.......................
 ......*.......................
 ......*.......................
@@ -107,16 +107,16 @@ func swap(original_cell : Vector2, target_cell : Vector2):
 	map.set_cellv(original_cell, map.get_cellv(target_cell))
 	map.set_cellv(target_cell, id)
 
-func compute_next_step_boulder(position : Vector2):
+func compute_next_step_boulder(position : Vector2, next_state : String):
 	if get_at(position) == "boulder":
 		var under = position + Vector2.DOWN
 		var under_entity = get_at(under)
 		if under_entity == "empty":
 			set_at(position, "falling_boulder")
 			return "compute"
-	return "player"
+	return next_state
 
-func compute_next_step_falling_boulder(position : Vector2):
+func compute_next_step_falling_boulder(position : Vector2, next_state : String):
 	if get_at(position) == "falling_boulder":
 		var under = position + Vector2.DOWN
 		var under_entity = get_at(under)
@@ -140,18 +140,19 @@ func compute_next_step_falling_boulder(position : Vector2):
 			set_at(character_position, "lost")
 			return "loss"
 		return "compute"
+	return next_state
 
 func compute_next_step():
-	var next_step = "player"
+	var next_step = "computation_done"
 	var current_state = export_map()
 	for y in range(Y_MAX, Y_MIN, -1):
 		for x in range(X_MIN, X_MAX):
 			var cell = Vector2(x, y)
 			var entity = get_at(cell)
 			if entity == "falling_boulder":
-				next_step = compute_next_step_falling_boulder(cell)
+				next_step = compute_next_step_falling_boulder(cell, next_step)
 			elif entity == "boulder":
-				next_step = compute_next_step_boulder(cell)
+				next_step = compute_next_step_boulder(cell, next_step)
 			if next_step in ["compute", "loss"]:
 				return next_step
 	if current_state != export_map():
@@ -182,21 +183,55 @@ func compute_player_step():
 
 
 var state = "compute"
+var check_player = false	
 
-func _process(delta):
-	var next_state = state
-	if state == "compute":
-		next_state = compute_next_step()
-	elif state == "move_player":
-		next_state = compute_player_step()
-	state = next_state
+func pop_back():
+	pass
+
+var history = []
+
+func save():
+	var sstate = {}
+	var map_state = {}
+	for i in map.get_used_cells():
+		map_state[i] = map.get_cellv(i)
+	sstate["map"] = map_state
+	sstate["player"] = character_position
+	history.push_back(sstate)
+	print("State saved", len(history))
+
+func pop_state():
+	print("push : ", len(history))
+	if len(history) > 0:
+		var pstate = history.pop_back()
+		character_position = pstate['player']
+		map.clear()
+		for i in pstate['map']:
+			map.set_cellv(i, pstate['map'][i])
+	return "player"
+
+func _input(event):
+	if state == "player":
+		if Input.is_action_pressed("ui_cancel"):
+			state = "restore"
+		else:
+			var input = Vector2()
+			input.x = Input.get_axis("ui_left", "ui_right")
+			if input.x == 0:
+				input.y = Input.get_axis("ui_up", "ui_down")
+			desired_input = input
+			if desired_input != Vector2.ZERO:
+				state = compute_player_step()
+				desired_input = Vector2.ZERO
+	elif state == "loss":
+		if Input.is_action_just_released("ui_cancel"):
+			state = "restore"
 
 func _physics_process(delta):
-	if state == "player":
-		var input = Vector2()
-		input.x = Input.get_axis("ui_left", "ui_right")
-		if input.x == 0:
-			input.y = Input.get_axis("ui_up", "ui_down")
-		if state == "player":
-			desired_input = input
-			state = "move_player"
+	if state == "compute":
+		state = compute_next_step()
+	elif state == "computation_done":
+		save()
+		state = "player"
+	elif state == "restore":
+		state = pop_state()
