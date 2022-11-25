@@ -2,12 +2,12 @@
 
 importer="wav"
 type="AudioStreamSample"
-path="res://.import/boulder.wav-13c1275d8ade7132ec9081a6b8a2689f.sample"
+path="res://.import/pick.wav-d54e811484e7be05793cc41b8307db99.sample"
 
 [deps]
 
-source_file="res://sounds/fx/boulder.wav"
-dest_files=[ "res://.import/boulder.wav-13c1275d8ade7132ec9081a6b8a2689f.sample" ]
+source_file="res://sounds/fx/pick.wav"
+dest_files=[ "res://.import/pick.wav-d54e811484e7be05793cc41b8307db99.sample" ]
 
 [params]
 

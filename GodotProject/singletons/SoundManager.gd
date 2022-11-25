@@ -4,6 +4,9 @@ const SAMPLES = {
 	"loss": preload("res://sounds/fx/loss.wav"),
 	"no": preload("res://sounds/fx/no.wav"),
 	"boulder": preload("res://sounds/fx/boulder.wav"),
+	"pick": preload("res://sounds/fx/pick.wav"),
+	"error": preload("res://sounds/fx/error.wav"),
+	"win": preload("res://sounds/fx/win.wav"),
 }
 
 const POOL_SIZE = 8
