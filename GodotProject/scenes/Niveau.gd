@@ -24,6 +24,21 @@ var position_joueur : Vector2 = Vector2.ZERO
 var pommes_restantes : int = 0
 var deplacements : int = 0
 
+var dernier_delai = 0
+const DELAI = 0.01
+
+func _physics_process(delta):
+	dernier_delai += delta
+	while (dernier_delai - DELAI > 0):
+		dernier_delai -= DELAI
+		if etat_actuel == EtatJeu.CALCUL:
+			phase_calcul()
+
+func phase_calcul():
+	calculer_etat_suivant()
+	if pommes_restantes == 0 and etat_actuel == EtatJeu.JOUEUR:
+		declencher_gagne()
+
 func charger_niveau(niveau : String):
 	var parties = niveau.split("/")
 	var contenu_niveau = Globals.jeux[parties[0]]["contents"][parties[1]]
@@ -54,7 +69,7 @@ func maj_hud():
 	$HUD.text = "Pommes restantes : "+str(pommes_restantes) + " C : "+ Globals.compress(chaine_jeu)
 
 func _input(event):
-	if Input.is_action_just_pressed("annuler"):
+	if Input.is_action_pressed("annuler"):
 		annuler()
 		return
 	if etat_actuel != EtatJeu.JOUEUR:
@@ -115,9 +130,6 @@ func deplacer(d : Vector2):
 
 func etat_suivant():
 	etat_actuel = EtatJeu.CALCUL
-	calculer_etat_suivant()
-	if etat_actuel == EtatJeu.CALCUL:
-		$EtatSuivant.start()
 
 func calculer_etat_suivant():
 	if etat_actuel != EtatJeu.CALCUL:
@@ -205,13 +217,6 @@ func declencher_perdu():
 	etat_actuel = EtatJeu.PERDU
 	$"/root/SoundManager".play("loss")
 	$HUD.text = "Qu'as-tu fait à Mr. Matt ?"
-
-func _on_EtatSuivant_timeout():
-	calculer_etat_suivant()
-	if pommes_restantes == 0:
-		declencher_gagne()
-	if etat_actuel != EtatJeu.CALCUL:
-		$EtatSuivant.stop()
 
 func annuler():
 	if len(historique) == 0:

@@ -17,5 +17,5 @@ func _ready():
 
 
 func _on_Button_pressed():
-	Globals.jeu_a_charger = "Apple Town/The Market"
+	Globals.jeu_a_charger = "Debug/1rocher"
 	get_tree().change_scene("res://scenes/Niveau.tscn")

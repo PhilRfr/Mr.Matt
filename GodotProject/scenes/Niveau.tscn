@@ -16,13 +16,8 @@ tile_set = ExtResource( 2 )
 cell_size = Vector2( 24, 24 )
 format = 1
 
-[node name="EtatSuivant" type="Timer" parent="."]
-wait_time = 0.1
-
 [node name="HUD" type="Label" parent="."]
 margin_right = 357.0
 margin_bottom = 16.0
 custom_fonts/font = SubResource( 1 )
 text = "Pommes restantes :"
-
-[connection signal="timeout" from="EtatSuivant" to="." method="_on_EtatSuivant_timeout"]
